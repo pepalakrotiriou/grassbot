@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GrassBot Control Panel</title>
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+    <h1>GrassBot Mission Control</h1>
+
+    <div class="main-container">
+        <div id="video-container">
+            <div id="webcam-container"></div> <div id="label-container">Scanning...</div>
+        </div>
+
+        <div id="status-box" class="status-healthy">
+            SYSTEM STATUS: <span id="status-text">HEALTHY</span>
+        </div>
+
+        <div class="controls">
+            <button onmousedown="sendMove('forward')" onmouseup="stopMove()">FORWARD</button>
+            <div class="horizontal-btns">
+                <button onmousedown="sendMove('left')" onmouseup="stopMove()">LEFT</button>
+                <button onmousedown="sendMove('right')" onmouseup="stopMove()">RIGHT</button>
+            </div>
+            <button onmousedown="sendMove('backward')" onmouseup="stopMove()">BACK</button>
+        </div>
+
+        <button id="pump-btn" disabled onclick="triggerPump()">SPREAD TREATMENT</button>
+    </div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>
