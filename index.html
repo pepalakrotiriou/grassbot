@@ -23,10 +23,18 @@
             margin: 0 auto;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        #logo { width: 200px; border-radius: 80%; margin-bottom: 10px; }
-        h1 { margin-bottom: 5px; }
-        h2 { color: #a8e6cf; margin-top: 0; font-weight: 300; }
+        /* Διόρθωση μεγέθους Logo */
+        #logo { 
+            width: 180px; 
+            height: 180px;
+            object-fit: cover;
+            border-radius: 50%; 
+            margin-bottom: 10px;
+            border: 3px solid rgba(255,255,255,0.5);
+        }
+        h1 { margin-bottom: 5px; font-size: 24px; }
         
         #image-display { 
             width: 100%; 
@@ -35,6 +43,7 @@
             border-radius: 10px; 
             margin: 20px 0;
             border: 3px solid white;
+            background: #444; /* Φόντο αν δεν υπάρχει εικόνα */
         }
 
         .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -53,11 +62,12 @@
         button:hover { transform: scale(1.05); opacity: 0.9; }
 
         #result-box {
-            font-size: 24px;
+            font-size: 22px;
             margin: 20px 0;
             padding: 15px;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.4);
             border-radius: 10px;
+            min-height: 30px;
         }
     </style>
 </head>
@@ -69,7 +79,7 @@
 
         <div id="result-box">Αναμονή για εικόνα...</div>
 
-        <img id="image-display" src="https://via.placeholder.com/400x300?text=Upload+or+Capture" />
+        <img id="image-display" crossorigin="anonymous" src="logo.jpg" />
 
         <div class="controls">
             <button class="btn-pi" onclick="captureFromPi()">Λήψη από Pi 4</button>
@@ -82,29 +92,32 @@
     </div>
 
     <script>
-        // Το δικό σου μοντέλο Teachable Machine
         const MODEL_URL = "https://teachablemachine.withgoogle.com/models/c6m5BlOJg/";
-        // Η IP του Raspberry Pi σου
+        // Βάλε εδώ την IP του Pi σου, π.χ. http://192.168.1.15:5000
         const PI_IP = "http://192.168.1.XX:5000"; 
 
-        let model, maxPredictions;
+        let model;
 
-        // Φόρτωση του μοντέλου κατά την εκκίνηση
         async function init() {
-            const modelURL = MODEL_URL + "model.json";
-            const metadataURL = MODEL_URL + "metadata.json";
-            model = await tmImage.load(modelURL, metadataURL);
-            console.log("Model Loaded");
+            try {
+                const modelURL = MODEL_URL + "model.json";
+                const metadataURL = MODEL_URL + "metadata.json";
+                model = await tmImage.load(modelURL, metadataURL);
+                console.log("Model Loaded Successfully");
+                document.getElementById("result-box").innerHTML = "Το σύστημα είναι έτοιμο!";
+            } catch (e) {
+                console.error("Model failed to load", e);
+            }
         }
 
-        // Λήψη από το Raspberry Pi
         async function captureFromPi() {
             const img = document.getElementById("image-display");
+            document.getElementById("result-box").innerHTML = "Λήψη εικόνας...";
+            // Προσθήκη timestamp για να μην παίρνει την παλιά φωτό από την προσωρινή μνήμη
             img.src = PI_IP + "/capture?t=" + new Date().getTime();
             img.onload = () => predict();
         }
 
-        // Ανέβασμα αρχείου από τον υπολογιστή
         document.getElementById('file-input').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -115,8 +128,8 @@
             reader.readAsDataURL(e.target.files[0]);
         });
 
-        // Διάγνωση
         async function predict() {
+            if (!model) return;
             const img = document.getElementById("image-display");
             const prediction = await model.predict(img);
             
@@ -136,10 +149,11 @@
 
         async function activatePump() {
             try {
-                await fetch(PI_IP + "/spray", { method: 'POST' });
-                alert("Ο ψεκασμός ξεκίνησε!");
+                const response = await fetch(PI_IP + "/spray", { method: 'POST' });
+                if(response.ok) alert("Ο ψεκασμός ξεκίνησε!");
+                else alert("Το Raspberry Pi δεν ανταποκρίνεται.");
             } catch (err) {
-                alert("Σφάλμα σύνδεσης με το Raspberry Pi");
+                alert("Σφάλμα σύνδεσης: Βεβαιωθείτε ότι το Pi είναι online.");
             }
         }
 
