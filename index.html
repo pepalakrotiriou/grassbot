@@ -1,35 +1,73 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GrassBot Control Panel</title>
-    <link rel="stylesheet" href="static/style.css">
+    <title>Lawn Doctor Bot</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f0fdf4; }
+        #image-container { margin: 20px; border: 5px solid #2d5a27; display: inline-block; }
+        button { padding: 15px 25px; font-size: 18px; cursor: pointer; border-radius: 8px; border: none; margin: 10px; }
+        .btn-capture { background: #3b82f6; color: white; }
+        .btn-spray { background: #ef4444; color: white; }
+    </style>
 </head>
 <body>
-    <h1>GrassBot Mission Control</h1>
-
-    <div class="main-container">
-        <div id="video-container">
-            <div id="webcam-container"></div> <div id="label-container">Scanning...</div>
-        </div>
-
-        <div id="status-box" class="status-healthy">
-            SYSTEM STATUS: <span id="status-text">HEALTHY</span>
-        </div>
-
-        <div class="controls">
-            <button onmousedown="sendMove('forward')" onmouseup="stopMove()">FORWARD</button>
-            <div class="horizontal-btns">
-                <button onmousedown="sendMove('left')" onmouseup="stopMove()">LEFT</button>
-                <button onmousedown="sendMove('right')" onmouseup="stopMove()">RIGHT</button>
-            </div>
-            <button onmousedown="sendMove('backward')" onmouseup="stopMove()">BACK</button>
-        </div>
-
-        <button id="pump-btn" disabled onclick="triggerPump()">SPREAD TREATMENT</button>
+    <h1>Lawn Diagnosis Bot</h1>
+    
+    <div id="image-container">
+        <img id="lawn-image" width="400" src="https://via.placeholder.com/400x300?text=No+Image+Captured" />
     </div>
 
-    <script src="static/script.js"></script>
+    <div id="label-container" style="font-size: 24px; font-weight: bold;"></div>
+
+    <div>
+        <button class="btn-capture" onclick="captureAndPredict()">Λήψη & Διάγνωση</button>
+        <button class="btn-spray" onclick="activatePump()">Ψεκασμός Φαρμάκου</button>
+    </div>
+
+    <script>
+        // Αντικατάστησε με το link από το Teachable Machine
+        const URL = "https://teachablemachine.withgoogle.com/models/YOUR_MODEL_ID/";
+        // Αντικατάστησε με την IP του Raspberry Pi (πρέπει να είναι στην ίδια σύνδεση WiFi)
+        const PI_IP = "http://192.168.1.XX:5000"; 
+
+        let model, labelContainer, maxPredictions;
+
+        async function init() {
+            const modelURL = URL + "model.json";
+            const metadataURL = URL + "metadata.json";
+            model = await tmImage.load(modelURL, metadataURL);
+            labelContainer = document.getElementById("label-container");
+        }
+
+        async function captureAndPredict() {
+            const imgElement = document.getElementById("lawn-image");
+            // 1. Τραβάμε φωτό από το Pi
+            imgElement.src = PI_IP + "/capture?t=" + new Date().getTime();
+            
+            // Περιμένουμε λίγο να φορτώσει η εικόνα
+            imgElement.onload = async () => {
+                const prediction = await model.predict(imgElement);
+                // Βρίσκουμε το αποτέλεσμα με το μεγαλύτερο ποσοστό
+                let highProb = 0;
+                let bestMatch = "";
+                for (let i = 0; i < prediction.length; i++) {
+                    if (prediction[i].probability > highProb) {
+                        highProb = prediction[i].probability;
+                        bestMatch = prediction[i].className;
+                    }
+                }
+                labelContainer.innerHTML = "Διάγνωση: " + bestMatch + " (" + (highProb * 100).toFixed(0) + "%)";
+            };
+        }
+
+        async function activatePump() {
+            fetch(PI_IP + "/spray", { method: 'POST' });
+            alert("Η αντλία ενεργοποιήθηκε!");
+        }
+
+        init();
+    </script>
 </body>
 </html>
