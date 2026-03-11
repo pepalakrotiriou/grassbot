@@ -1,163 +1,70 @@
-<!DOCTYPE html>
-<html lang="el">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Σελίδα Χρήστη Grassbot</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    <style>
+<style>
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
-            background-color: #2d5a27; /* Πράσινο του γρασιδιού */
+            background-color: #2d5a27; 
             color: white;
             margin: 0;
             padding: 20px;
         }
         .container {
             background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+            padding: 30px;
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.2);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        /* Διόρθωση μεγέθους Logo */
+        /* Διόρθωση Logo για να μην παραμορφώνεται */
         #logo { 
-            width: 180px; 
-            height: 180px;
-            object-fit: cover;
+            width: 150px; 
+            height: 150px;
+            object-fit: contain; /* Διατηρεί τις αναλογίες του logo */
+            background: white;   /* Προσθέτει λευκό φόντο αν το logo είναι διάφανο */
             border-radius: 50%; 
-            margin-bottom: 10px;
-            border: 3px solid rgba(255,255,255,0.5);
+            margin-bottom: 15px;
+            border: 4px solid #fff;
         }
-        h1 { margin-bottom: 5px; font-size: 24px; }
+        h1 { font-size: 22px; margin-bottom: 20px; text-transform: uppercase; }
         
+        /* Διόρθωση πλαισίου εικόνας για να μην φαίνεται σαν γραμμή */
         #image-display { 
             width: 100%; 
             max-width: 400px; 
+            min-height: 250px; /* Δίνει ύψος ακόμα και αν δεν έχει φορτώσει η φωτό */
             height: auto; 
-            border-radius: 10px; 
-            margin: 20px 0;
+            border-radius: 12px; 
+            margin: 15px 0;
             border: 3px solid white;
-            background: #444; /* Φόντο αν δεν υπάρχει εικόνα */
+            background-color: rgba(0,0,0,0.2);
+            object-fit: cover;
         }
-
-        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        button, label { 
-            padding: 12px 20px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            border-radius: 50px; 
-            border: none; 
-            transition: 0.3s;
-            font-weight: bold;
-        }
-        .btn-pi { background: #3b82f6; color: white; }
-        .btn-upload { background: #ffffff; color: #2d5a27; }
-        .btn-spray { background: #ef4444; color: white; width: 100%; margin-top: 15px; }
-        button:hover { transform: scale(1.05); opacity: 0.9; }
 
         #result-box {
-            font-size: 22px;
-            margin: 20px 0;
+            font-size: 20px;
+            margin: 10px 0;
             padding: 15px;
             background: rgba(0,0,0,0.4);
             border-radius: 10px;
-            min-height: 30px;
+            border-left: 5px solid #a8e6cf;
         }
+
+        .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px; }
+        
+        button, label { 
+            padding: 12px 18px; 
+            font-size: 14px; 
+            cursor: pointer; 
+            border-radius: 50px; 
+            border: none; 
+            transition: 0.2s;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .btn-pi { background: #3b82f6; color: white; }
+        .btn-upload { background: #ffffff; color: #2d5a27; }
+        .btn-spray { background: #ef4444; color: white; width: 100%; font-size: 16px; margin-top: 10px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
     </style>
-</head>
-<body>
-
-    <div class="container">
-        <img src="logo.jpg" id="logo" alt="Grassbot Logo">
-        <h1>ΣΕΛΙΔΑ ΧΡΗΣΤΗ Grassbot</h1>
-
-        <div id="result-box">Αναμονή για εικόνα...</div>
-
-        <img id="image-display" crossorigin="anonymous" src="logo.jpg" />
-
-        <div class="controls">
-            <button class="btn-pi" onclick="captureFromPi()">Λήψη από Pi 4</button>
-            
-            <input type="file" id="file-input" accept="image/*" style="display:none">
-            <label for="file-input" class="btn-upload">Ανέβασμα Αρχείου</label>
-            
-            <button class="btn-spray" onclick="activatePump()">ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ</button>
-        </div>
-    </div>
-
-    <script>
-        const MODEL_URL = "https://teachablemachine.withgoogle.com/models/c6m5BlOJg/";
-        // Βάλε εδώ την IP του Pi σου, π.χ. http://192.168.1.15:5000
-        const PI_IP = "http://192.168.1.XX:5000"; 
-
-        let model;
-
-        async function init() {
-            try {
-                const modelURL = MODEL_URL + "model.json";
-                const metadataURL = MODEL_URL + "metadata.json";
-                model = await tmImage.load(modelURL, metadataURL);
-                console.log("Model Loaded Successfully");
-                document.getElementById("result-box").innerHTML = "Το σύστημα είναι έτοιμο!";
-            } catch (e) {
-                console.error("Model failed to load", e);
-            }
-        }
-
-        async function captureFromPi() {
-            const img = document.getElementById("image-display");
-            document.getElementById("result-box").innerHTML = "Λήψη εικόνας...";
-            // Προσθήκη timestamp για να μην παίρνει την παλιά φωτό από την προσωρινή μνήμη
-            img.src = PI_IP + "/capture?t=" + new Date().getTime();
-            img.onload = () => predict();
-        }
-
-        document.getElementById('file-input').addEventListener('change', function(e) {
-            const reader = new FileReader();
-            reader.onload = function() {
-                const img = document.getElementById("image-display");
-                img.src = reader.result;
-                img.onload = () => predict();
-            }
-            reader.readAsDataURL(e.target.files[0]);
-        });
-
-        async function predict() {
-            if (!model) return;
-            const img = document.getElementById("image-display");
-            const prediction = await model.predict(img);
-            
-            let bestMatch = "";
-            let highestProb = 0;
-
-            prediction.forEach(p => {
-                if(p.probability > highestProb) {
-                    highestProb = p.probability;
-                    bestMatch = p.className;
-                }
-            });
-
-            document.getElementById("result-box").innerHTML = 
-                `Διάγνωση: <span style="color:#fcd34d">${bestMatch}</span> (${(highestProb * 100).toFixed(0)}%)`;
-        }
-
-        async function activatePump() {
-            try {
-                const response = await fetch(PI_IP + "/spray", { method: 'POST' });
-                if(response.ok) alert("Ο ψεκασμός ξεκίνησε!");
-                else alert("Το Raspberry Pi δεν ανταποκρίνεται.");
-            } catch (err) {
-                alert("Σφάλμα σύνδεσης: Βεβαιωθείτε ότι το Pi είναι online.");
-            }
-        }
-
-        init();
-    </script>
-</body>
-</html>
