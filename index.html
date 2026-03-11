@@ -3,108 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Σελίδα Χρήστη Grassbot</title>
+    <title>Grassbot Solutions AI</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            background-color: #2d5a27; /* Πράσινο του γρασιδιού */
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        #logo { width: 200px; border-radius: 80%; margin-bottom: 10px; }
-        h1 { margin-bottom: 5px; }
-        h2 { color: #a8e6cf; margin-top: 0; font-weight: 300; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background-color: #1a3c15; color: white; margin: 0; padding: 20px; }
+        .container { background: rgba(255, 255, 255, 0.1); padding: 25px; border-radius: 20px; max-width: 500px; margin: 0 auto; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); }
         
-        #image-display { 
-            width: 100%; 
-            max-width: 400px; 
-            height: auto; 
-            border-radius: 10px; 
-            margin: 20px 0;
-            border: 3px solid white;
-        }
-
+        /* Logo Styling */
+        #logo { width: 160px; height: 160px; object-fit: contain; background: white; border-radius: 50%; margin-bottom: 15px; border: 4px solid #fff; }
+        
+        /* Image Display Area */
+        #image-display { width: 100%; max-width: 400px; min-height: 250px; border-radius: 12px; border: 3px solid white; background-color: #333; object-fit: cover; margin: 15px 0; }
+        
+        /* Result Box */
+        #result-box { font-size: 20px; margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 10px; border-left: 5px solid #4ade80; }
+        
+        /* Controls */
         .controls { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        button, label { 
-            padding: 12px 20px; 
-            font-size: 16px; 
-            cursor: pointer; 
-            border-radius: 50px; 
-            border: none; 
-            transition: 0.3s;
-            font-weight: bold;
-        }
-        .btn-pi { background: #3b82f6; color: white; }
-        .btn-upload { background: #ffffff; color: #2d5a27; }
-        .btn-spray { background: #ef4444; color: white; width: 100%; margin-top: 15px; }
-        button:hover { transform: scale(1.05); opacity: 0.9; }
-
-        #result-box {
-            font-size: 24px;
-            margin: 20px 0;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-        }
+        button, label { padding: 14px 22px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
+        .btn-pi { background: #2563eb; color: white; }
+        .btn-upload { background: #ffffff; color: #1a3c15; }
+        .btn-spray { background: #dc2626; color: white; width: 100%; margin-top: 10px; font-size: 18px; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
     </style>
 </head>
 <body>
 
     <div class="container">
         <img src="logo.jpg" id="logo" alt="Grassbot Logo">
-        <h1>ΣΕΛΙΔΑ ΧΡΗΣΤΗ Grassbot</h1>
+        <h1>ΣΕΛΙΔΑ ΧΡΗΣΤΗ</h1>
 
-        <div id="result-box">Αναμονή για εικόνα...</div>
+        <div id="result-box">Αρχικοποίηση μοντέλου...</div>
 
-        <img id="image-display" src="https://via.placeholder.com/400x300?text=Upload+or+Capture" />
+        <img id="image-display" crossorigin="anonymous" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
 
         <div class="controls">
-            <button class="btn-pi" onclick="captureFromPi()">Λήψη από Pi 4</button>
+            <button class="btn-pi" onclick="captureFromPi()">ΛΗΨΗ ΑΠΟ PI 4</button>
             
             <input type="file" id="file-input" accept="image/*" style="display:none">
-            <label for="file-input" class="btn-upload">Ανέβασμα Αρχείου</label>
+            <label for="file-input" class="btn-upload">ΑΝΕΒΑΣΜΑ ΑΡΧΕΙΟΥ</label>
             
             <button class="btn-spray" onclick="activatePump()">ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ</button>
         </div>
     </div>
 
     <script>
-        // Το δικό σου μοντέλο Teachable Machine
+        // ΣΥΝΔΕΣΗ ΜΕ ΤΟ ΜΟΝΤΕΛΟ ΣΟΥ
         const MODEL_URL = "https://teachablemachine.withgoogle.com/models/c6m5BlOJg/";
-        // Η IP του Raspberry Pi σου
+        // Η IP ΤΟΥ RASPBERRY PI (ΑΛΛΑΞΕ ΤΟ 192.168.1.XX)
         const PI_IP = "http://192.168.1.XX:5000"; 
 
-        let model, maxPredictions;
+        let model;
 
-        // Φόρτωση του μοντέλου κατά την εκκίνηση
+        // Φόρτωση Μοντέλου
         async function init() {
-            const modelURL = MODEL_URL + "model.json";
-            const metadataURL = MODEL_URL + "metadata.json";
-            model = await tmImage.load(modelURL, metadataURL);
-            console.log("Model Loaded");
+            try {
+                model = await tmImage.load(MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+                document.getElementById("result-box").innerHTML = "Το σύστημα είναι έτοιμο!";
+            } catch (e) {
+                document.getElementById("result-box").innerHTML = "Σφάλμα φόρτωσης μοντέλου.";
+            }
         }
 
-        // Λήψη από το Raspberry Pi
+        // Λειτουργία Λήψης από Pi
         async function captureFromPi() {
             const img = document.getElementById("image-display");
+            document.getElementById("result-box").innerHTML = "Λήψη από κάμερα...";
             img.src = PI_IP + "/capture?t=" + new Date().getTime();
             img.onload = () => predict();
         }
 
-        // Ανέβασμα αρχείου από τον υπολογιστή
+        // Λειτουργία Ανεβάσματος Αρχείου
         document.getElementById('file-input').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = function() {
@@ -115,31 +85,27 @@
             reader.readAsDataURL(e.target.files[0]);
         });
 
-        // Διάγνωση
+        // Διάγνωση μέσω AI
         async function predict() {
+            if (!model) return;
             const img = document.getElementById("image-display");
             const prediction = await model.predict(img);
             
-            let bestMatch = "";
-            let highestProb = 0;
-
-            prediction.forEach(p => {
-                if(p.probability > highestProb) {
-                    highestProb = p.probability;
-                    bestMatch = p.className;
-                }
-            });
+            // Εύρεση της κλάσης με το μεγαλύτερο ποσοστό
+            prediction.sort((a, b) => b.probability - a.probability);
+            const res = prediction[0];
 
             document.getElementById("result-box").innerHTML = 
-                `Διάγνωση: <span style="color:#fcd34d">${bestMatch}</span> (${(highestProb * 100).toFixed(0)}%)`;
+                `Διάγνωση: <span style="color:#4ade80">${res.className}</span> (${(res.probability * 100).toFixed(0)}%)`;
         }
 
+        // Εντολή Ψεκασμού
         async function activatePump() {
             try {
-                await fetch(PI_IP + "/spray", { method: 'POST' });
-                alert("Ο ψεκασμός ξεκίνησε!");
+                const res = await fetch(PI_IP + "/spray", { method: 'POST' });
+                if(res.ok) alert("Ο ψεκασμός ενεργοποιήθηκε!");
             } catch (err) {
-                alert("Σφάλμα σύνδεσης με το Raspberry Pi");
+                alert("Αποτυχία σύνδεσης με το Raspberry Pi.");
             }
         }
 
