@@ -1,146 +1,146 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grassbot Solutions AI</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
-    <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            text-align: center; 
-            background-color: #1a3c15; 
-            color: white; 
-            margin: 0; 
-            padding: 20px; 
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grassbot Solutions AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            text-align: center; 
+            background-color: #1a3c15; 
+            color: white; 
+            margin: 0; 
+            padding: 20px; 
+        }
 
-        .container { 
-            background: rgba(255, 255, 255, 0.1); 
-            padding: 30px; 
-            border-radius: 20px; 
-            max-width: 600px; 
-            margin: 0 auto; 
-            backdrop-filter: blur(10px); 
-            border: 1px solid rgba(255,255,255,0.2); 
-        }
+        .container { 
+            background: rgba(255, 255, 255, 0.1); 
+            padding: 30px; 
+            border-radius: 20px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255,255,255,0.2); 
+        }
 
-        /* Μεγαλύτερο Logo Styling */
-        #logo { 
-            width: 120px; 
-            height: 120px; 
-            object-fit: contain; 
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            margin-bottom: 20px; 
-            border: 1px solid #1a3c15;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            padding: 15px; /* Αυξάνουμε το padding για να μικρύνει η εικόνα μέσα στον κύκλο */
-            box-sizing: border-box; 
-        }
+        /* Μεγαλύτερο Logo Styling */
+        #logo { 
+            width: 120px; 
+            height: 120px; 
+            object-fit: contain; 
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            margin-bottom: 20px; 
+            border: 1px solid #1a3c15;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            padding: 15px; /* Αυξάνουμε το padding για να μικρύνει η εικόνα μέσα στον κύκλο */
+            box-sizing: border-box; 
+        }
 
-        /* Image Display Area */
-        #image-display { 
-            width: 100%; 
-            max-width: 450px; 
-            min-height: 300px; 
-            border-radius: 12px; 
-            border: 3px solid white; 
-            background-color: #333; 
-            object-fit: cover; 
-            margin: 15px 0; 
-        }
+        /* Image Display Area */
+        #image-display { 
+            width: 100%; 
+            max-width: 450px; 
+            min-height: 300px; 
+            border-radius: 12px; 
+            border: 3px solid white; 
+            background-color: #333; 
+            object-fit: cover; 
+            margin: 15px 0; 
+        }
 
-        /* Result Box */
-        #result-box { 
-            font-size: 22px; 
-            margin: 15px 0; 
-            padding: 15px; 
-            background: #2563eb; 
-            border-radius: 10px; 
-            border-left: 8px solid #4ade80; 
-        }
+        /* Result Box */
+        #result-box { 
+            font-size: 22px; 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: #2563eb; 
+            border-radius: 10px; 
+            border-left: 8px solid #4ade80; 
+        }
 
-        /* Controls */
-        .controls { 
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            gap: 12px; 
-        }
+        /* Controls */
+        .controls { 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 12px; 
+        }
 
-        button, label { 
-            padding: 14px 22px; 
-            border-radius: 50px; 
-            border: none; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: 0.2s; 
-            font-size: 15px; 
-        }
+        button, label { 
+            padding: 14px 22px; 
+            border-radius: 50px; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.2s; 
+            font-size: 15px; 
+        }
 
-        .btn-pi { 
-            background: #2563eb; 
-            color: white; 
-        }
+        .btn-pi { 
+            background: #2563eb; 
+            color: white; 
+        }
 
-        .btn-upload { 
-            background: #ffffff; 
-            color: #1a3c15; 
-            display: inline-block; 
-        }
+        .btn-upload { 
+            background: #ffffff; 
+            color: #1a3c15; 
+            display: inline-block; 
+        }
 
-        .btn-spray { 
-            background: blue; 
-            color: black; 
-            width: 100%; 
-            margin-top: 15px; 
-            font-size: 18px; 
-            letter-spacing: 1px;
-        }
+        .btn-spray { 
+            background: blue; 
+            color: black; 
+            width: 100%; 
+            margin-top: 15px; 
+            font-size: 18px; 
+            letter-spacing: 1px;
+        }
 
-        button:hover, label:hover { 
-            opacity: 0.9; 
-            transform: scale(1.05); 
-        }
-    </style>
+        button:hover, label:hover { 
+            opacity: 0.9; 
+            transform: scale(1.05); 
+        }
+    </style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <img src="logo.jpg" id="logo" alt="Grassbot Logo"
-    onerror="this.src='https://via.placeholder.com/250?text=GrassBot+Logo'">
+    <img src="logo.jpg" id="logo" alt="Grassbot Logo"
+    onerror="this.src='https://via.placeholder.com/250?text=GrassBot+Logo'">
 
-    <h1>ΔΙΑΧΕΙΡΙΣΗ GRASSBOT</h1>
+    <h1>ΔΙΑΧΕΙΡΙΣΗ GRASSBOT</h1>
 
-    <div id="result-box">
-        Αρχικοποίηση μοντέλου...
-    </div>
+    <div id="result-box">
+        Αρχικοποίηση μοντέλου...
+    </div>
 
-    <img id="image-display"
-    crossorigin="anonymous"
-    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+    <img id="image-display"
+    crossorigin="anonymous"
+    src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
 
-    <div class="controls">
+    <div class="controls">
 
-        <button class="btn-pi" onclick="captureFromPi()">
-            ΛΗΨΗ ΑΠΟ PI 4
-        </button>
+        <button class="btn-pi" onclick="captureFromPi()">
+            ΛΗΨΗ ΑΠΟ PI 4
+        </button>
 
-        <input type="file" id="file-input" accept="image/*" style="display:none">
+        <input type="file" id="file-input" accept="image/*" style="display:none">
 
-        <label for="file-input" class="btn-upload">
-            ΑΝΕΒΑΣΜΑ ΑΡΧΕΙΟΥ
-        </label>
+        <label for="file-input" class="btn-upload">
+            ΑΝΕΒΑΣΜΑ ΑΡΧΕΙΟΥ
+        </label>
 
-        <button class="btn-spray" onclick="activatePump()">
-            ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ
-        </button>
+        <button class="btn-spray" onclick="activatePump()">
+            ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ
+        </button>
 
-    </div>
+    </div>
 
 </div>
 
@@ -153,41 +153,105 @@ let model;
 
 async function init() {
 
-    try {
+    try {
 
-        model = await tmImage.load(
-            MODEL_URL + "model.json",
-            MODEL_URL + "metadata.json"
-        );
+        model = await tmImage.load(
+            MODEL_URL + "model.json",
+            MODEL_URL + "metadata.json"
+        );
 
-        document.getElementById("result-box").innerHTML =
-        "Το σύστημα είναι έτοιμο!";
+        document.getElementById("result-box").innerHTML =
+        "Το σύστημα είναι έτοιμο!";
 
-    }
+    }
 
-    catch(e) {
+    catch(e) {
 
-        document.getElementById("result-box").innerHTML =
-        "Σφάλμα φόρτωσης μοντέλου.";
+        document.getElementById("result-box").innerHTML =
+        "Σφάλμα φόρτωσης μοντέλου.";
 
-    }
+    }
 
 }
 
 async function captureFromPi() {
 
-    const img = document.getElementById("image-display");
+    const img = document.getElementById("image-display");
 
-    document.getElementById("result-box").innerHTML =
-    "Λήψη από κάμερα...";
+    document.getElementById("result-box").innerHTML =
+    "Λήψη από κάμερα...";
 
-    img.src = PI_IP + "/capture?t=" + new Date().getTime();
+    img.src = PI_IP + "/capture?t=" + new Date().getTime();
 
-    img.onload = () => predict();
+    img.onload = () => predict();
 
 }
 
 document.getElementById('file-input')
 .addEventListener('change', function(e) {
 
-    const reader = new FileReader();        φτιαξε μου το backrood στο logo 
+    const reader = new FileReader();
+
+    reader.onload = function() {
+
+        const img = document.getElementById("image-display");
+
+        img.src = reader.result;
+
+        img.onload = () => predict();
+
+    }
+
+    if(e.target.files[0])
+        reader.readAsDataURL(e.target.files[0]);
+
+});
+
+async function predict() {
+
+    if (!model) return;
+
+    const img = document.getElementById("image-display");
+
+    const prediction = await model.predict(img);
+
+    prediction.sort((a, b) =>
+        b.probability - a.probability
+    );
+
+    const res = prediction[0];
+
+    document.getElementById("result-box").innerHTML =
+    `Διάγνωση: <span style="color:#4ade80">${res.className}</span>
+    (${(res.probability * 100).toFixed(0)}%)`;
+
+}
+
+async function activatePump() {
+
+    try {
+
+        const res = await fetch(
+            PI_IP + "/spray",
+            { method: 'POST' }
+        );
+
+        if(res.ok)
+            alert("Ο ψεκασμός ενεργοποιήθηκε!");
+
+    }
+
+    catch (err) {
+
+        alert("Αποτυχία σύνδεσης με το Raspberry Pi.");
+
+    }
+
+}
+
+init();
+
+</script>
+
+</body>
+</html>
