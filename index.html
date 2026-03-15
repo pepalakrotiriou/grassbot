@@ -66,7 +66,7 @@ async function getSensorData() {
     resBox.innerHTML = "⏳ Παρακαλώ περιμένετε..."; 
     
     try {
-        // Προσθέτουμε cache: 'no-cache' για να παίρνει πάντα φρέσκες τιμές
+        // Προσθέτουμε cache: 'no-cache' για να παίρνει πάντα νέες τιμές
         const response = await fetch(PI_IP + '/get_temp', { cache: 'no-cache' });
         
         if (!response.ok) throw new Error('Ο Server δεν απαντάει σωστά');
