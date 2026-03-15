@@ -55,20 +55,31 @@ async function init() {
         document.getElementById("result-box").innerHTML = "Σφάλμα φόρτωσης μοντέλου.";
     }
 }
-
+i2c = board.I2C()
+sensor = adafruit_sht31d.SHT31D(i2c, address=0x45)
+    
 async function getSensorData() {
-    document.getElementById("result-box").innerHTML = "Μέτρηση...";
+    const resBox = document.getElementById("result-box");
+    resBox.innerHTML = "⏳ Παρακαλώ περιμένετε..."; 
+    
     try {
-        const response = await fetch(PI_IP + '/get_temp');
+        // Προσθέτουμε cache: 'no-cache' για να παίρνει πάντα φρέσκες τιμές
+        const response = await fetch(PI_IP + '/get_temp', { cache: 'no-cache' });
+        
+        if (!response.ok) throw new Error('Ο Server δεν απαντάει σωστά');
+        
         const data = await response.json();
+        console.log("Δεδομένα από Pi:", data); // Δες το στο F12 του browser
+
         if(data.temp) {
-            document.getElementById("result-box").innerHTML = 
-            `🌡️ Θερμοκρασία: ${data.temp}°C<br>💧 Υγρασία: ${data.humidity}%`;
+            resBox.innerHTML = `🌡️ <b>${data.temp}°C</b> | 💧 <b>${data.humidity}%</b>`;
         } else {
-            document.getElementById("result-box").innerHTML = "Σφάλμα αισθητήρα.";
+            resBox.innerHTML = "⚠️ Ο αισθητήρας δεν έστειλε τιμές.";
         }
     } catch (err) {
-        alert("Αποτυχία σύνδεσης με το Pi.");
+        console.error("Σφάλμα Fetch:", err);
+        resBox.innerHTML = "❌ Αποτυχία σύνδεσης. Ελέγξτε αν τρέχει το api.py!";
+        alert("Δεν μπόρεσα να συνδεθώ στην IP: " + PI_IP);
     }
 }
 
