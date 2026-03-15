@@ -58,9 +58,7 @@ async function init() {
         document.getElementById("result-box").innerHTML = "Σφάλμα φόρτωσης μοντέλου.";
     }
 }
-i2c = board.I2C()
-sensor = adafruit_sht31d.SHT31D(i2c, address=0x45)
-    
+
 async function getSensorData() {
     const resBox = document.getElementById("result-box");
     resBox.innerHTML = "⏳ Παρακαλώ περιμένετε..."; 
@@ -137,6 +135,8 @@ async function sendCommand(dir) {
     });
 }
 
+init();
+</script>
 
 </body>
 </html>
