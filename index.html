@@ -39,6 +39,9 @@
         
         <button class="btn-sensor" onclick="getSensorData()">ΜΕΤΡΗΣΗ ΘΕΡΜΟΚΡΑΣΙΑΣ / ΥΓΡΑΣΙΑΣ</button>
         <button class="btn-spray" onclick="activatePump()">ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ</button>
+        <button class="btn-pi" onclick="sendCommand('forward')">⬆️ ΕΜΠΡΟΣ</button>
+        <button class="btn-pi" onclick="sendCommand('backward')">⬇️ ΠΙΣΩ</button>
+        <button class="btn-spray" onclick="sendCommand('stop')">⏹️ STOP</button>
     </div>
 </div>
 
@@ -122,6 +125,18 @@ async function activatePump() {
         alert("Αποτυχία σύνδεσης.");
     }
 }
+
+   
+    
+async function sendCommand(dir) {
+    document.getElementById("result-box").innerHTML = "Κίνηση: " + dir;
+    await fetch(PI_IP + '/move', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({direction: dir})
+    });
+}
+</script>
 
 init();
 </script>
