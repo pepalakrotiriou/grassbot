@@ -40,7 +40,6 @@
         <button class="btn-sensor" onclick="getSensorData()">ΜΕΤΡΗΣΗ ΘΕΡΜΟΚΡΑΣΙΑΣ / ΥΓΡΑΣΙΑΣ</button>
         <button class="btn-spray" onclick="activatePump()">ΕΝΕΡΓΟΠΟΙΗΣΗ ΨΕΚΑΣΜΟΥ</button>
         <button class="btn-pi" onclick="sendCommand('forward')">⬆️ ΕΜΠΡΟΣ</button>
-        <button class="btn-pi" onclick="sendCommand('backward')">⬇️ ΠΙΣΩ</button>
         <button class="btn-spray" onclick="sendCommand('stop')">⏹️ STOP</button>
     </div>
 </div>
@@ -124,15 +123,26 @@ async function activatePump() {
     }
 }
 
-   
-    
 async function sendCommand(dir) {
-    document.getElementById("result-box").innerHTML = "Κίνηση: " + dir;
-    await fetch(PI_IP + '/move', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({direction: dir})
-    });
+    const resBox = document.getElementById("result-box");
+    
+    // Ενημέρωση της οθόνης
+    if (dir === 'forward') resBox.innerHTML = "🚀 Κίνηση Εμπρός Αργά...";
+    if (dir === 'stop') resBox.innerHTML = "🛑 Σταμάτημα Οχήματος";
+
+    try {
+        const response = await fetch(PI_IP + '/move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ direction: dir })
+        });
+
+        if (!response.ok) throw new Error('Σφάλμα API');
+    } catch (err) {
+        console.error("Error:", err);
+        resBox.innerHTML = "❌ Σφάλμα Σύνδεσης!";
+    }
+}
 }
 
 init();
